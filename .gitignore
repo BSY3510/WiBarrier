@@ -1,0 +1,28 @@
+# ── Python ──
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ── 런타임/PoC 산출물 ──
+_workspace/
+data/
+
+# ── 로컬/개인 설정 ──
+.env
+.env.*
+*.local
+
+# ── 에디터/OS ──
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
