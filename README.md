@@ -178,11 +178,8 @@ WiBarrier/
 │  └─ config.py
 ├─ web/             index.html · radar.js(Canvas) · style.css
 ├─ scripts/         calibrate · poc_collect/analyze · df_*(방향탐지 실험)
-├─ tests/           pytest (수집·신호·계약·설정·크로스플랫폼)
-└─ docs/            00-PRD(SSOT) · 03-architecture(WS 계약) · 08-design-system 등
+└─ tests/           pytest (수집·신호·계약·설정·크로스플랫폼)
 ```
-
-자세한 설계는 [`docs/README.md`](./docs/README.md) (SSOT: [`docs/00-PRD.md`](./docs/00-PRD.md))를 참조하세요.
 
 ---
 
@@ -209,7 +206,7 @@ node --check web/radar.js
 
 ## 상태
 
-기능 v1 동작(수집 → 모션/거리 → 하이브리드 → 레이더 + 실시간 설정 + 모션 거리 표시). macOS 검증 완료, Linux/Windows 어댑터는 코드 완성·실 OS 구동 검증 대기. 진행 현황: [`docs/PROGRESS.md`](./docs/PROGRESS.md).
+기능 v1 동작(수집 → 모션/거리 → 하이브리드 → 레이더 + 실시간 설정 + 모션 거리 표시). macOS 검증 완료, Linux/Windows 어댑터는 코드 완성·실 OS 구동 검증 대기.
 
 ## 참고 / 과학적 배경
 
