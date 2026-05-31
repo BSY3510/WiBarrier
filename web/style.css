@@ -1,0 +1,477 @@
+/* ============================================================
+   WiBarrier — style.css
+   docs/08-design-system.md §2 토큰 그대로. 임의 hex 금지.
+   ============================================================ */
+
+:root {
+  /* §2.1 색 (다크 = 기본) */
+  --bg-deep:          #05080F;
+  --bg-edge:          #070B14;
+  --bg-panel:         #0A0E1A;
+  --bg-panel-2:       #0E1424;
+  --stroke:           #1B2740;
+  --radar-primary:    #00E5C0;
+  --radar-primary-dim:#0B5C50;
+  --alert-warn:       #FFB020;
+  --alert-high:       #FF3B47;
+  --ok:               #36D399;
+  --text:             #D6E2E0;
+  --text-dim:         #7A8C8A;
+  --text-mute:        #4A5A58;
+
+  /* §2.2 타이포 */
+  --font-hud: "JetBrains Mono","IBM Plex Mono",ui-monospace,monospace;
+  --fs-display: 28px;
+  --fs-h1: 18px;
+  --fs-body: 14px;
+  --fs-label: 12px;
+  --fs-micro: 10px;
+  --lh: 1.4;
+  --ls-hud: 0.04em;
+
+  /* §2.3 간격 */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-6: 24px; --sp-8: 32px;
+  --radius: 8px; --radius-sm: 4px;
+
+  /* §2.4 글로우·보더 */
+  --glow-sm: 0 0 6px rgba(0,229,192,.55);
+  --glow:    0 0 8px rgba(0,229,192,.7);
+  --glow-high: 0 0 12px rgba(255,59,71,.75);
+  --border-panel: 1px solid var(--stroke);
+  --focus-ring: 0 0 0 2px #05080F, 0 0 0 4px #00E5C0;
+
+  /* §7 기본 easing */
+  --ease-out: cubic-bezier(0.22,1,0.36,1);
+}
+
+/* ===================== 라이트 테마 (주간 스코프 — docs/08 §2 라이트) =====================
+   네온/글로우는 흰 배경에서 깨지므로 단순 반전이 아니라: 밝은 배경 + 진한 라인 +
+   채도 낮춘 teal 강조 + 글로우를 약한 그림자로 대체. 캔버스는 radar.js가 source-over로 전환. */
+[data-theme="light"] {
+  --bg-deep:          #E8EEF0;
+  --bg-edge:          #D9E2E5;
+  --bg-panel:         #FFFFFF;
+  --bg-panel-2:       #EEF3F5;
+  --stroke:           #C2D0D5;
+  --radar-primary:    #0E8C7A;
+  --radar-primary-dim:#8FC2B9;
+  --alert-warn:       #B5730A;
+  --alert-high:       #C62433;
+  --ok:               #14865C;
+  --text:             #0E1A1C;
+  --text-dim:         #4B5C5A;
+  --text-mute:        #93A3A1;
+
+  /* 글로우 → 약한 그림자(흰 배경에서 번짐 방지) */
+  --glow-sm:   0 0 0 1px rgba(14,140,122,.25);
+  --glow:      0 1px 3px rgba(14,140,122,.30);
+  --glow-high: 0 1px 4px rgba(198,36,51,.35);
+  --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #0E8C7A;
+}
+
+* { box-sizing: border-box; }
+
+/* 테마 전환 부드럽게(모션 감소 시 0ms는 아래 미디어쿼리가 처리) */
+body, .hud, .card, .badge, .disclaimer { transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out); }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font-hud);
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 키보드 포커스 링 (§2.4) */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* ===================== 레이아웃 그리드 (§4.1) ===================== */
+.app {
+  display: grid;
+  grid-template-columns: 280px minmax(0,1fr) 300px;
+  grid-template-rows: 56px minmax(0,1fr) 36px;
+  grid-template-areas:
+    "hud   hud    hud"
+    "left  radar  right"
+    "disc  disc   disc";
+  height: 100vh;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+}
+
+/* ===================== HUD 바 (§6.2, §6.7) ===================== */
+.hud {
+  grid-area: hud;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-panel);
+  border: var(--border-panel);
+  border-radius: var(--radius);
+  padding: 0 var(--sp-4);
+}
+.hud__left { display: flex; align-items: center; gap: var(--sp-4); }
+.hud__right { display: flex; align-items: center; gap: var(--sp-3); }
+.theme-btn {
+  width: 32px; height: 32px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  color: var(--radar-primary);
+  font-size: 16px; line-height: 1;
+  cursor: pointer;
+}
+.theme-btn:hover { border-color: var(--radar-primary); }
+.hud__title {
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  letter-spacing: var(--ls-hud);
+  margin: 0;
+  color: var(--text);
+}
+
+/* ConnectionBadge (§6.7) — 높이 24px, 점 8px */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 24px;
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel-2);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--fs-label);
+  cursor: pointer;
+}
+.badge__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-mute);
+  flex: none;
+}
+.badge--connected .badge__dot { background: var(--ok); box-shadow: var(--glow-sm); }
+.badge--connected .badge__text { color: var(--text); }
+.badge--connecting .badge__dot { background: var(--alert-warn); animation: blink 1s steps(2,start) infinite; }
+.badge--offline   .badge__dot { background: transparent; border: 1px solid var(--text-mute); }
+.badge--denied    .badge__dot { background: var(--alert-high); position: relative; }
+.badge--denied    .badge__dot::after {
+  content: ""; position: absolute; inset: -1px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, transparent 44%, var(--bg-panel) 44%, var(--bg-panel) 56%, transparent 56%);
+}
+.badge--denied .badge__text { color: var(--alert-high); }
+
+@keyframes blink { 50% { opacity: .25; } }
+
+/* StatusIndicator (§6.2) — HUD 버전 fs-h1 */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 32px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-h1);
+  letter-spacing: var(--ls-hud);
+  text-transform: uppercase;
+}
+.status__icon {
+  width: 16px; height: 16px; flex: none;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status--scanning { color: var(--radar-primary); }
+.status--scanning .status__icon {
+  border: 2px dotted var(--radar-primary);
+  animation: spin 2s linear infinite;
+}
+.status--clear { color: var(--ok); }
+.status--clear .status__icon { background: var(--ok); box-shadow: var(--glow-sm); }
+.status--motion.level-low  { color: var(--radar-primary); }
+.status--motion.level-mid  { color: var(--alert-warn); }
+.status--motion.level-high { color: var(--alert-high); }
+.status--motion .status__icon {
+  border: 2px solid currentColor;
+  box-shadow: 0 0 0 3px transparent;
+  animation: ripple-icon 1.2s var(--ease-out) infinite;
+}
+.status--offline { color: var(--text-mute); }
+.status--offline .status__icon {
+  border: 2px solid var(--text-mute);
+  background: linear-gradient(45deg, transparent 45%, var(--text-mute) 45%, var(--text-mute) 55%, transparent 55%);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes ripple-icon {
+  0%   { box-shadow: 0 0 0 0 currentColor; }
+  100% { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* ===================== 패널 공통 ===================== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: 0;
+  overflow: hidden;
+}
+.panel--left  { grid-area: left; }
+.panel--right { grid-area: right; }
+
+.card {
+  background: var(--bg-panel);
+  border: var(--border-panel);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.card--grow { flex: 1; min-height: 0; }
+
+.card__cap {
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-hud);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.card__cap--toggle {
+  background: none; border: none; padding: 0;
+  font-family: inherit; cursor: pointer; text-align: left;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card__chevron { transition: transform 220ms var(--ease-out); }
+.card__cap--toggle[aria-expanded="true"] .card__chevron { transform: rotate(90deg); }
+
+/* ===================== MotionGauge (§6.3) ===================== */
+.gauge { display: flex; align-items: center; gap: var(--sp-3); }
+.gauge__track {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  background: var(--bg-panel-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.gauge__fill {
+  height: 100%;
+  background: var(--radar-primary);
+  transition: width 200ms ease-out, background-color 200ms ease-out;
+}
+.gauge__fill.level-mid  { background: var(--alert-warn); }
+.gauge__fill.level-high { background: var(--alert-high); }
+.gauge__tick {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px; background: var(--text-dim);
+}
+.gauge__value {
+  font-size: var(--fs-body);
+  color: var(--text);
+  min-width: 2ch; text-align: right;
+}
+
+/* ===================== VarianceGraph (§6.4) ===================== */
+.variance { width: 100%; height: 80px; display: block; }
+
+/* ===================== MeasuredAPs (측정 중 AP 목록) ===================== */
+.ap-list {
+  list-style: none; margin: 0; padding: 0;
+  overflow-y: auto; flex: 1; min-height: 0;
+}
+.ap-list__row {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 28px; border-bottom: 1px solid var(--stroke);
+  font-size: var(--fs-label);
+}
+.ap-list__name {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--text);
+}
+.ap-list__rssi { color: var(--text-dim); flex: none; min-width: 6ch; text-align: right; }
+.ap-list__dist { color: var(--radar-primary); flex: none; min-width: 6ch; text-align: right; }
+.ap-list__empty {
+  color: var(--text-mute); text-align: center; padding: var(--sp-4) 0;
+  font-size: var(--fs-label);
+}
+
+/* ===================== 레이더 (§4.2, §6.1) ===================== */
+.radar-wrap {
+  grid-area: radar;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0; min-height: 0;
+}
+.radar-cell {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.radar-canvas { display: block; }
+
+.radar-overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: var(--fs-h1);
+  letter-spacing: var(--ls-hud);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+  pointer-events: none;
+  white-space: pre-line;
+}
+
+/* PermissionCard (§6.9) */
+.perm-card {
+  position: absolute;
+  top: 24%; left: 50%;
+  transform: translateX(-50%);
+  width: 360px; max-width: 90%;
+  padding: var(--sp-6);
+  background: var(--bg-panel-2);
+  border: 1px solid var(--alert-high);
+  border-radius: var(--radius);
+  box-shadow: var(--glow-high);
+}
+.perm-card__title {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-h1);
+  color: var(--text);
+}
+.perm-card__body {
+  margin: 0 0 var(--sp-4);
+  font-size: var(--fs-body);
+  color: var(--text-dim);
+}
+.btn-outline {
+  font: inherit;
+  font-size: var(--fs-body);
+  padding: var(--sp-2) var(--sp-4);
+  background: transparent;
+  color: var(--radar-primary);
+  border: 1px solid var(--radar-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.btn-outline:hover { background: var(--radar-primary); color: var(--bg-deep); }
+
+/* ===================== EventTimeline (§6.5) ===================== */
+.timeline {
+  list-style: none; margin: 0; padding: 0;
+  overflow-y: auto;
+  flex: 1; min-height: 0;
+  max-height: 40vh;
+}
+.timeline__row {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 36px;
+  border-bottom: 1px solid var(--stroke);
+  font-size: var(--fs-label);
+  animation: fade-in 200ms var(--ease-out);
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.timeline__chip {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 1px var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--ls-hud);
+  border: 1px solid currentColor;
+  flex: none;
+}
+.timeline__chip.level-low  { color: var(--radar-primary); }
+.timeline__chip.level-mid  { color: var(--alert-warn); }
+.timeline__chip.level-high { color: var(--alert-high); }
+.timeline__time { color: var(--text-dim); }
+.timeline__score { color: var(--text); margin-left: auto; }
+.timeline__spark { width: 48px; height: 16px; flex: none; }
+.timeline__empty {
+  color: var(--text-mute);
+  text-align: center;
+  padding: var(--sp-6) 0;
+  font-size: var(--fs-label);
+}
+
+/* ===================== SettingsPanel (§6.6) — disabled ===================== */
+.settings {
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  overflow: hidden;
+}
+.settings__note {
+  margin: 0; font-size: var(--fs-micro); color: var(--text-mute);
+}
+.slider { display: flex; flex-direction: column; gap: var(--sp-1); }
+.slider__label { font-size: var(--fs-label); color: var(--text-dim); }
+.slider__label em { color: var(--text); font-style: normal; }
+.slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--radar-primary);
+  cursor: pointer;
+}
+.slider__label small { color: var(--text-mute); }
+
+/* ===================== DisclaimerBanner (§6.8) ===================== */
+.disclaimer {
+  grid-area: disc;
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 36px;
+  padding: 0 var(--sp-4);
+  background: var(--bg-panel);
+  border: var(--border-panel);
+  border-radius: var(--radius);
+}
+.disclaimer__icon { color: var(--alert-warn); }
+.disclaimer__text { font-size: var(--fs-label); color: var(--text); }
+
+/* ===================== 반응형 (§4.3) ===================== */
+@media (max-width: 1099px) {
+  .app {
+    grid-template-columns: 240px minmax(0,1fr);
+    grid-template-rows: 56px minmax(0,1fr) auto 36px;
+    grid-template-areas:
+      "hud   hud"
+      "left  radar"
+      "right right"
+      "disc  disc";
+  }
+}
+@media (max-width: 759px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px auto auto auto 36px;
+    grid-template-areas:
+      "hud"
+      "radar"
+      "left"
+      "right"
+      "disc";
+    height: auto;
+    min-height: 100vh;
+  }
+  .radar-wrap { aspect-ratio: 1; }
+}
+
+/* ===================== prefers-reduced-motion (§7.2) ===================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+  }
+  .badge--connecting .badge__dot { animation: none; }
+  .status--scanning .status__icon { animation: none; }
+}

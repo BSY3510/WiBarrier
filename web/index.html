@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WiBarrier — WiFi 모션 레이더</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ───────────────────── HUD 바 (grid-row 1) ───────────────────── -->
+    <header class="hud" role="banner">
+      <div class="hud__left">
+        <h1 class="hud__title">WiBarrier</h1>
+        <!-- ConnectionBadge (§6.7) -->
+        <button id="conn-badge" class="badge badge--connecting" type="button"
+                aria-label="연결 상태: 연결 중" title="연결 상태 (클릭 시 상세)">
+          <span class="badge__dot" aria-hidden="true"></span>
+          <span class="badge__text">연결 중…</span>
+        </button>
+      </div>
+      <div class="hud__right">
+        <!-- StatusIndicator (§6.2) -->
+        <div id="status-indicator" class="status status--scanning" role="status" aria-live="polite">
+          <span class="status__icon" aria-hidden="true"></span>
+          <span class="status__text">SCANNING</span>
+        </div>
+        <!-- ThemeToggle (다크/라이트) -->
+        <button id="theme-toggle" class="theme-btn" type="button"
+                aria-pressed="false" aria-label="다크 모드 (클릭 시 라이트로)" title="테마 전환">☾</button>
+      </div>
+    </header>
+
+    <!-- ───────────────────── 좌 패널 (grid-row 2) ───────────────────── -->
+    <aside class="panel panel--left" aria-label="모션 지표">
+      <!-- MotionGauge (§6.3) -->
+      <section class="card" aria-label="모션 스코어">
+        <div class="card__cap">MOTION SCORE</div>
+        <div class="gauge">
+          <div class="gauge__track">
+            <div id="gauge-fill" class="gauge__fill" style="width:0%"></div>
+            <span class="gauge__tick" style="left:33%"></span>
+            <span class="gauge__tick" style="left:66%"></span>
+          </div>
+          <span id="gauge-value" class="gauge__value">0</span>
+        </div>
+      </section>
+
+      <!-- VarianceGraph (§6.4) -->
+      <section class="card" aria-label="신호 분산 그래프">
+        <div class="card__cap">SIGNAL VARIANCE</div>
+        <canvas id="variance-canvas" class="variance" width="248" height="80"
+                role="img" aria-label="최근 모션 스코어 추세"></canvas>
+      </section>
+
+      <!-- MeasuredAPs — 현재 측정 중인 AP 목록 (계약 state.aps) -->
+      <section class="card card--grow" aria-label="측정 중인 AP">
+        <div class="card__cap">MEASURED APs · <span id="ap-count">0</span></div>
+        <ul id="ap-list" class="ap-list"></ul>
+      </section>
+    </aside>
+
+    <!-- ───────────────────── 레이더 (grid-row 2) ───────────────────── -->
+    <main class="radar-wrap" aria-label="레이더">
+      <div id="radar-cell" class="radar-cell">
+        <canvas id="radar-canvas" class="radar-canvas"
+                role="img" aria-label="레이더, 초기화 중"></canvas>
+        <!-- 중앙 오버레이 텍스트 (SCANNING / 신호 없음 / 연결 끊김) -->
+        <div id="radar-overlay" class="radar-overlay" aria-hidden="true"></div>
+
+        <!-- PermissionCard (§6.9) — 기본 숨김 -->
+        <div id="permission-card" class="perm-card" role="alertdialog"
+             aria-modal="false" hidden>
+          <h2 id="perm-title" class="perm-card__title"></h2>
+          <p id="perm-body" class="perm-card__body"></p>
+          <button id="perm-retry" class="btn-outline" type="button" hidden>재시도</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ───────────────────── 우 패널 (grid-row 2) ───────────────────── -->
+    <aside class="panel panel--right" aria-label="이벤트 및 설정">
+      <!-- EventTimeline (§6.5) -->
+      <section class="card card--grow" aria-label="모션 이벤트 타임라인">
+        <div class="card__cap">EVENT TIMELINE</div>
+        <ul id="event-timeline" class="timeline">
+          <li class="timeline__empty">기록된 모션 이벤트 없음</li>
+        </ul>
+      </section>
+
+      <!-- SettingsPanel (§6.6, S10) — 인바운드 config 연동 -->
+      <section class="card" aria-label="설정">
+        <button id="settings-toggle" class="card__cap card__cap--toggle"
+                type="button" aria-expanded="false" aria-controls="settings-body">
+          SETTINGS <span class="card__chevron" aria-hidden="true">▸</span>
+        </button>
+        <div id="settings-body" class="settings" hidden>
+          <label class="slider">
+            <span class="slider__label">블립 갱신 주기 <em id="set-scan-val">5s</em></span>
+            <input id="set-scan" type="range" min="3" max="10" step="1" value="5"
+                   aria-label="블립 갱신 주기(초)" />
+          </label>
+          <label class="slider">
+            <span class="slider__label">모션 임계치 <em id="set-thr-val">40</em> <small>(낮을수록 민감)</small></span>
+            <input id="set-thr" type="range" min="10" max="80" step="5" value="40"
+                   aria-label="모션 임계치(낮을수록 민감)" />
+          </label>
+          <label class="slider">
+            <span class="slider__label">최소 RSSI <em id="set-rssi-val">-85 dBm</em></span>
+            <input id="set-rssi" type="range" min="-95" max="-50" step="5" value="-85"
+                   aria-label="최소 RSSI 필터(dBm)" />
+          </label>
+          <p class="settings__note" id="settings-status">서버에 실시간 적용</p>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ───────────────────── 고지 배너 (grid-row 3) ───────────────────── -->
+    <footer class="disclaimer" role="note"
+            aria-label="각도는 실제 방향이 아닙니다 · 거리는 추정값입니다">
+      <span class="disclaimer__icon" aria-hidden="true">⚠</span>
+      <span class="disclaimer__text">각도는 실제 방향이 아닙니다 · 거리는 추정값입니다</span>
+    </footer>
+
+  </div>
+  <script src="radar.js"></script>
+</body>
+</html>

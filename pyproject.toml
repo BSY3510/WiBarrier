@@ -1,0 +1,43 @@
+[project]
+name = "wibarrier"
+version = "0.1.0"
+description = "노트북 WiFi RSSI로 주변 모션을 감지하고 거리를 근사해 브라우저 레이더 UI로 시각화하는 로컬 서비스"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "websockets>=12.0",   # uvicorn의 WebSocket 지원(브라우저 WS 업그레이드)에 필요
+]
+
+[project.optional-dependencies]
+# S01 PoC (macOS 수집 + 분석). 단계별로 도입.
+poc = [
+    "pyobjc-framework-CoreWLAN>=10.0",
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+]
+# 개발/검증 (S02~). 단계 게이트의 정적 검증·테스트.
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+    "mypy>=1.8",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
